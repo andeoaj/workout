@@ -258,7 +258,7 @@ const DB = {
 // ════════════════════════════════════════════════════
 // STATE
 // ════════════════════════════════════════════════════
-let logState = { type: null, date: todayStr(), sets: {} };
+let logState = { type: null, date: todayStr(), sets: {}, editId: null };
 let progState = { type: 'A', exerciseId: null, metric: 'weight' };
 const charts  = {};
 
@@ -345,15 +345,38 @@ function renderHome() {
               <div style="font-weight:600;font-size:14px">${fmtDate(s.date)}</div>
               <div style="font-size:12px;color:var(--text2);margin-top:2px">${s.exercises.length} exercise${s.exercises.length!==1?'s':''}</div>
             </div>
-            <span class="badge badge-${s.type}">${s.type} · ${TN[s.type]}</span>
+            <div style="display:flex;align-items:center;gap:8px">
+              <button class="delete-btn" onclick="editSession('${s.id}')" title="Edit session" style="font-size:15px">✏️</button>
+              <span class="badge badge-${s.type}">${s.type} · ${TN[s.type]}</span>
+            </div>
           </div>`).join('')
       }
     </div>`;
 }
 
 function startWorkout(type) {
-  logState = { type, date: todayStr(), sets: {} };
+  logState = { type, date: todayStr(), sets: {}, editId: null };
   navigate('log');
+}
+
+function editSession(id) {
+  const session = DB.getSessions().find(s => s.id === id);
+  if (!session) return;
+  const sets = {};
+  session.exercises.forEach(ex => {
+    sets[ex.exerciseId] = ex.sets.map(s => ({
+      weight: s.weight === null ? '' : s.weight,
+      reps:   s.reps   === null ? '' : s.reps,
+      isStripping: s.isStripping
+    }));
+  });
+  logState = { type: session.type, date: session.date, sets, editId: session.id };
+  navigate('log');
+}
+
+function cancelEdit() {
+  logState = { type: null, date: todayStr(), sets: {}, editId: null };
+  navigate('home');
 }
 
 // ════════════════════════════════════════════════════
@@ -384,6 +407,12 @@ function renderLog() {
     const sessions = DB.getSessions();
     const lastSess = [...sessions].filter(s=>s.type===logState.type).sort((a,b)=>b.date.localeCompare(a.date))[0];
 
+    if (logState.editId) {
+      html += `<div class="card" style="background:rgba(108,99,255,0.1);border-color:var(--accent);margin-bottom:12px">
+        <div style="font-size:13px;color:var(--accent)">✏️ Editing session from ${fmtDate(logState.date)}</div>
+        <button class="btn btn-secondary btn-sm" onclick="cancelEdit()" style="margin-top:8px">Cancel</button>
+      </div>`;
+    }
     html += `<div class="section-title">${prog.name}</div>
              <div class="section-sub">Add sets per exercise. Use + ST Set for stripping (drop) sets.</div>`;
 
@@ -394,7 +423,7 @@ function renderLog() {
     });
 
     html += `<button class="btn btn-success btn-full" onclick="saveSession()" style="margin-top:4px;margin-bottom:20px">
-               ✓ Save Session
+               ${logState.editId ? '✓ Update Session' : '✓ Save Session'}
              </button>`;
   }
 
@@ -479,11 +508,18 @@ function saveSession() {
   if (!exLogs.length) { showToast('Add at least one set!', false); return; }
 
   const sessions = DB.getSessions();
-  sessions.push({ id: uid(), date: logState.date, type: logState.type, exercises: exLogs });
+  const isEdit = !!logState.editId;
+  if (isEdit) {
+    const idx = sessions.findIndex(s => s.id === logState.editId);
+    if (idx !== -1) sessions[idx] = { id: logState.editId, date: logState.date, type: logState.type, exercises: exLogs };
+    else sessions.push({ id: uid(), date: logState.date, type: logState.type, exercises: exLogs });
+  } else {
+    sessions.push({ id: uid(), date: logState.date, type: logState.type, exercises: exLogs });
+  }
   DB.saveSessions(sessions);
 
-  logState = { type: null, date: todayStr(), sets: {} };
-  showToast('Session saved! 💪');
+  logState = { type: null, date: todayStr(), sets: {}, editId: null };
+  showToast(isEdit ? 'Session updated! ✏️' : 'Session saved! 💪');
   setTimeout(() => navigate('home'), 900);
 }
 
