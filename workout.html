@@ -1006,7 +1006,14 @@ auth.onAuthStateChanged(async user => {
     setupListeners(user.uid);
   } catch (e) {
     console.error('Failed to load data from Firestore:', e);
-    showToast('⚠️ Could not load data. Check Firestore setup.', false);
+    const code = e?.code || e?.message || 'unknown';
+    if (code.includes('permission-denied')) {
+      showToast('⚠️ Firestore: permission denied — fix security rules', false);
+    } else if (code.includes('Timeout') || code.includes('timeout')) {
+      showToast('⚠️ Firestore: timed out — is the database created?', false);
+    } else {
+      showToast(`⚠️ Firestore: ${code}`, false);
+    }
   } finally {
     hideLoading();
     renderHome();
