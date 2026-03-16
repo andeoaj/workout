@@ -926,7 +926,10 @@ function signOut() {
 
 async function loadAllData(uid) {
   const ref = fsdb.collection('users').doc(uid).collection('data');
-  const sessSnap = await ref.doc('sessions').get();
+  const timeout = new Promise((_, reject) =>
+    setTimeout(() => reject(new Error('Firestore timeout — check DB is created and rules are set')), 10000)
+  );
+  const sessSnap = await Promise.race([ref.doc('sessions').get(), timeout]);
 
   if (!sessSnap.exists) {
     // First sign-in: migrate localStorage data (if any) to Firestore
@@ -998,10 +1001,16 @@ auth.onAuthStateChanged(async user => {
   currentUid = user.uid;
   hideSignIn();
   showLoading();
-  await loadAllData(user.uid);
-  setupListeners(user.uid);
-  hideLoading();
-  renderHome();
+  try {
+    await loadAllData(user.uid);
+    setupListeners(user.uid);
+  } catch (e) {
+    console.error('Failed to load data from Firestore:', e);
+    showToast('⚠️ Could not load data. Check Firestore setup.', false);
+  } finally {
+    hideLoading();
+    renderHome();
+  }
 });
 </script>
 </body>
