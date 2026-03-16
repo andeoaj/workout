@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>Workout Tracker</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 <style>
 :root {
   --bg: #0f0f13;
@@ -169,13 +172,40 @@ input::placeholder { color: var(--text2); }
 .import-textarea { font-family: monospace; font-size: 12px; min-height: 180px; resize: vertical; }
 .parsed-ex { padding: 8px 10px; background: var(--surface2); border-radius: 6px; margin-bottom: 4px; font-size: 13px; }
 @media (min-width: 600px) { body { max-width: 600px; margin: 0 auto; } }
+/* ── SPINNER ── */
+.spinner { width: 36px; height: 36px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin .8s linear infinite; margin: 0 auto; }
+@keyframes spin { to { transform: rotate(360deg); } }
+/* ── OVERLAYS ── */
+.overlay { position: fixed; inset: 0; background: var(--bg); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 1000; padding: 24px; }
 </style>
 </head>
 <body>
 
+<!-- ── SIGN-IN OVERLAY ── -->
+<div id="signin-overlay" class="overlay" style="display:none">
+  <div style="font-size:52px;margin-bottom:16px">🏋️</div>
+  <h2 style="font-size:22px;font-weight:700;margin-bottom:8px">Workout Tracker</h2>
+  <p style="color:var(--text2);font-size:14px;margin-bottom:36px;text-align:center;max-width:280px;line-height:1.6">Sign in with Google to sync your workouts across all your devices</p>
+  <button onclick="signInWithGoogle()" style="display:flex;align-items:center;gap:10px;background:#fff;color:#1f1f1f;border:none;border-radius:8px;padding:13px 24px;font-size:15px;font-weight:600;cursor:pointer;box-shadow:0 2px 12px rgba(0,0,0,.4)">
+    <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+    Sign in with Google
+  </button>
+</div>
+
+<!-- ── LOADING OVERLAY ── -->
+<div id="loading-overlay" class="overlay">
+  <div class="spinner"></div>
+  <p style="color:var(--text2);margin-top:14px;font-size:14px">Loading…</p>
+</div>
+
 <header>
-  <h1 id="page-title">Dashboard</h1>
-  <p id="page-sub">Your workout overview</p>
+  <div style="display:flex;justify-content:space-between;align-items:flex-start">
+    <div>
+      <h1 id="page-title">Dashboard</h1>
+      <p id="page-sub">Your workout overview</p>
+    </div>
+    <button onclick="signOut()" style="background:none;border:1px solid var(--border);color:var(--text2);border-radius:6px;padding:4px 10px;font-size:11px;cursor:pointer;margin-top:4px;white-space:nowrap">Sign out</button>
+  </div>
 </header>
 
 <div id="page-home"     class="page active"></div>
@@ -205,6 +235,25 @@ input::placeholder { color: var(--text2); }
 <div class="toast" id="toast"></div>
 
 <script>
+// ════════════════════════════════════════════════════
+// FIREBASE
+// ════════════════════════════════════════════════════
+firebase.initializeApp({
+  apiKey:            "AIzaSyBfwjA7lURUdoEGjvFPQ-uT_UzWgIMA5Ng",
+  authDomain:        "workout-planner-511a6.firebaseapp.com",
+  projectId:         "workout-planner-511a6",
+  storageBucket:     "workout-planner-511a6.firebasestorage.app",
+  messagingSenderId: "336052618000",
+  appId:             "1:336052618000:web:f982eb4b54379aad671b95",
+  measurementId:     "G-PJYQXPTGP9"
+});
+const auth = firebase.auth();
+const fsdb = firebase.firestore();
+
+let currentUid = null;
+const cache = { sessions: [], bodyweights: [], programs: null };
+const unsubscribers = [];
+
 // ════════════════════════════════════════════════════
 // DEFAULT PROGRAM  (pre-populated from trainer's notes)
 // ════════════════════════════════════════════════════
@@ -244,20 +293,31 @@ const DEFAULT_PROGRAMS = {
 };
 
 // ════════════════════════════════════════════════════
-// STORAGE
+// STORAGE  (Firestore-backed, synchronous via cache)
 // ════════════════════════════════════════════════════
 const DB = {
-  getPrograms()       { return JSON.parse(localStorage.getItem('wt_programs')    || 'null') || structuredClone(DEFAULT_PROGRAMS); },
-  savePrograms(p)     { localStorage.setItem('wt_programs',    JSON.stringify(p)); },
-  getSessions()       { return JSON.parse(localStorage.getItem('wt_sessions')    || '[]'); },
-  saveSessions(s)     { localStorage.setItem('wt_sessions',    JSON.stringify(s)); },
-  getBodyWeights()    { return JSON.parse(localStorage.getItem('wt_bodyweights') || '[]'); },
-  saveBodyWeights(bw) { localStorage.setItem('wt_bodyweights', JSON.stringify(bw)); },
+  getPrograms()       { return cache.programs ?? structuredClone(DEFAULT_PROGRAMS); },
+  savePrograms(p)     { cache.programs = p;    fsWrite('programs', p); },
+  getSessions()       { return cache.sessions; },
+  saveSessions(s)     { cache.sessions = s;    fsWrite('sessions', s); },
+  getBodyWeights()    { return cache.bodyweights; },
+  saveBodyWeights(bw) { cache.bodyweights = bw; fsWrite('bodyweights', bw); },
 };
+
+function userDataRef() {
+  return fsdb.collection('users').doc(currentUid).collection('data');
+}
+
+function fsWrite(type, data) {
+  if (!currentUid) return;
+  const payload = (type === 'programs') ? data : { items: data };
+  userDataRef().doc(type).set(payload).catch(e => console.error('Firestore write:', e));
+}
 
 // ════════════════════════════════════════════════════
 // STATE
 // ════════════════════════════════════════════════════
+let currentPage = 'home';
 let logState = { type: null, date: todayStr(), sets: {}, editId: null };
 let progState = { type: 'A', exerciseId: null, metric: 'weight' };
 const charts  = {};
@@ -293,6 +353,7 @@ const PAGE_META = {
 };
 
 function navigate(page) {
+  currentPage = page;
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
   document.getElementById('page-' + page).classList.add('active');
@@ -800,7 +861,6 @@ function parseWorkoutText(text) {
     if (!cur || SKIP_RE.test(line) || line.startsWith('-')) continue;
     if (!/^[A-Z\u00C0-\u00FF]/.test(line)) continue;
 
-    // Strip set info to get the exercise name
     let name = line
       .replace(/\d+x\d+\/?\d*[^@]*/i, '')
       .replace(/-\d+\/?\d*["\s]*/g, '')
@@ -841,9 +901,108 @@ function resetProgram() {
 }
 
 // ════════════════════════════════════════════════════
+// AUTH
+// ════════════════════════════════════════════════════
+function showSignIn()  { document.getElementById('signin-overlay').style.display  = 'flex'; }
+function hideSignIn()  { document.getElementById('signin-overlay').style.display  = 'none'; }
+function showLoading() { document.getElementById('loading-overlay').style.display = 'flex'; }
+function hideLoading() { document.getElementById('loading-overlay').style.display = 'none'; }
+
+function signInWithGoogle() {
+  const provider = new firebase.auth.GoogleAuthProvider();
+  auth.signInWithPopup(provider).catch(e => {
+    console.error('Sign-in error:', e);
+    showToast('Sign-in failed. Please try again.', false);
+  });
+}
+
+function signOut() {
+  unsubscribers.forEach(u => u());
+  unsubscribers.length = 0;
+  currentUid = null;
+  cache.sessions = []; cache.bodyweights = []; cache.programs = null;
+  auth.signOut();
+}
+
+async function loadAllData(uid) {
+  const ref = fsdb.collection('users').doc(uid).collection('data');
+  const sessSnap = await ref.doc('sessions').get();
+
+  if (!sessSnap.exists) {
+    // First sign-in: migrate localStorage data (if any) to Firestore
+    const lsSessions = JSON.parse(localStorage.getItem('wt_sessions')    || '[]');
+    const lsBW       = JSON.parse(localStorage.getItem('wt_bodyweights') || '[]');
+    const lsPrograms = JSON.parse(localStorage.getItem('wt_programs')    || 'null') || structuredClone(DEFAULT_PROGRAMS);
+
+    cache.sessions    = lsSessions;
+    cache.bodyweights = lsBW;
+    cache.programs    = lsPrograms;
+
+    await Promise.all([
+      ref.doc('sessions').set({ items: lsSessions }),
+      ref.doc('bodyweights').set({ items: lsBW }),
+      ref.doc('programs').set(lsPrograms),
+    ]);
+
+    localStorage.removeItem('wt_sessions');
+    localStorage.removeItem('wt_bodyweights');
+    localStorage.removeItem('wt_programs');
+
+    if (lsSessions.length > 0) showToast(`Migrated ${lsSessions.length} sessions ☁️`);
+  } else {
+    // Load from Firestore
+    const [bwSnap, progSnap] = await Promise.all([
+      ref.doc('bodyweights').get(),
+      ref.doc('programs').get(),
+    ]);
+    cache.sessions    = sessSnap.data()?.items || [];
+    cache.bodyweights = bwSnap.exists  ? (bwSnap.data()?.items || []) : [];
+    cache.programs    = progSnap.exists ? progSnap.data()             : structuredClone(DEFAULT_PROGRAMS);
+  }
+}
+
+function setupListeners(uid) {
+  unsubscribers.forEach(u => u());
+  unsubscribers.length = 0;
+  const ref = fsdb.collection('users').doc(uid).collection('data');
+
+  unsubscribers.push(ref.doc('sessions').onSnapshot(snap => {
+    if (!snap.exists || snap.metadata.hasPendingWrites) return;
+    cache.sessions = snap.data()?.items || [];
+    rerenderCurrent();
+  }));
+  unsubscribers.push(ref.doc('bodyweights').onSnapshot(snap => {
+    if (!snap.exists || snap.metadata.hasPendingWrites) return;
+    cache.bodyweights = snap.data()?.items || [];
+    rerenderCurrent();
+  }));
+  unsubscribers.push(ref.doc('programs').onSnapshot(snap => {
+    if (!snap.exists || snap.metadata.hasPendingWrites) return;
+    cache.programs = snap.data();
+    rerenderCurrent();
+  }));
+}
+
+function rerenderCurrent() {
+  if (currentPage === 'home')     renderHome();
+  if (currentPage === 'progress') renderProgress();
+  if (currentPage === 'body')     renderBody();
+  // 'log' and 'import' are not auto-refreshed to avoid wiping in-progress input
+}
+
+// ════════════════════════════════════════════════════
 // INIT
 // ════════════════════════════════════════════════════
-renderHome();
+auth.onAuthStateChanged(async user => {
+  if (!user) { hideLoading(); showSignIn(); return; }
+  currentUid = user.uid;
+  hideSignIn();
+  showLoading();
+  await loadAllData(user.uid);
+  setupListeners(user.uid);
+  hideLoading();
+  renderHome();
+});
 </script>
 </body>
 </html>
