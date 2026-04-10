@@ -292,35 +292,29 @@ const db   = firebase.firestore();
 // ════════════════════════════════════════════════════
 // AUTH
 // ════════════════════════════════════════════════════
-function isiOS() {
-  return /iPad|iPhone|iPod/.test(navigator.userAgent) ||
-    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-}
-
 function signInWithGoogle() {
   const btn = document.getElementById('google-btn');
+  const errEl = document.getElementById('auth-error');
   btn.disabled = true;
+  errEl.textContent = '';
   const provider = new firebase.auth.GoogleAuthProvider();
-  if (isiOS()) {
-    auth.signInWithRedirect(provider);
-  } else {
-    auth.signInWithPopup(provider).catch(err => {
-      document.getElementById('auth-error').textContent = err.message;
+  auth.signInWithPopup(provider).catch(err => {
+    if (err.code === 'auth/popup-blocked' || err.code === 'auth/popup-closed-by-user') {
+      // Popup was blocked — fall back to redirect
+      auth.signInWithRedirect(provider);
+    } else {
+      errEl.textContent = err.message;
       btn.disabled = false;
-    });
-  }
+    }
+  });
 }
 
 function signOut() {
   auth.signOut();
 }
 
-auth.getRedirectResult().catch(err => {
-  if (err.code !== 'auth/no-redirect-result') {
-    const errEl = document.getElementById('auth-error');
-    if (errEl) errEl.textContent = err.message;
-  }
-});
+// Process any pending redirect result; suppress stale-state errors silently
+auth.getRedirectResult().catch(() => {});
 
 auth.onAuthStateChanged(async user => {
   const loading   = document.getElementById('auth-loading');
