@@ -364,9 +364,34 @@ async function _saveUserData() {
   }
 }
 
-// Auto-migrate localStorage data on first sign-in
+// Auto-migrate from old Firestore subcollection schema or localStorage
 async function checkMigration() {
   if (_userData.sessions.length > 0 || _userData.bodyWeights.length > 0) return;
+
+  // Check old Firestore subcollection structure (users/{uid}/data/*)
+  try {
+    const dataRef = db.collection('users').doc(_uid).collection('data');
+    const [sessSnap, bwSnap, progSnap] = await Promise.all([
+      dataRef.doc('sessions').get(),
+      dataRef.doc('bodyweights').get(),
+      dataRef.doc('programs').get(),
+    ]);
+    const oldSessions = sessSnap.exists  ? (sessSnap.data().items  || []) : [];
+    const oldBW       = bwSnap.exists    ? (bwSnap.data().items    || []) : [];
+    const oldPrograms = progSnap.exists  ? progSnap.data()                : null;
+    if (oldSessions.length || oldBW.length || oldPrograms) {
+      if (oldSessions.length) _userData.sessions    = oldSessions;
+      if (oldBW.length)       _userData.bodyWeights = oldBW;
+      if (oldPrograms)        _userData.programs    = oldPrograms;
+      await _saveUserData();
+      showToast('Data restored ✓');
+      return;
+    }
+  } catch (e) {
+    console.warn('Old schema migration check failed:', e);
+  }
+
+  // Fall back to localStorage migration
   const lsSessions    = JSON.parse(localStorage.getItem('wt_sessions')    || '[]');
   const lsBW          = JSON.parse(localStorage.getItem('wt_bodyweights') || '[]');
   const lsPrograms    = JSON.parse(localStorage.getItem('wt_programs')    || 'null');
