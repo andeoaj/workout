@@ -299,22 +299,18 @@ function signInWithGoogle() {
   errEl.textContent = '';
   const provider = new firebase.auth.GoogleAuthProvider();
   auth.signInWithPopup(provider).catch(err => {
-    if (err.code === 'auth/popup-blocked' || err.code === 'auth/popup-closed-by-user') {
-      // Popup was blocked — fall back to redirect
-      auth.signInWithRedirect(provider);
-    } else {
-      errEl.textContent = err.message;
-      btn.disabled = false;
+    if (err.code === 'auth/popup-blocked') {
+      errEl.textContent = 'Popup was blocked. Please allow popups for this site in your browser settings, then try again.';
+    } else if (err.code !== 'auth/popup-closed-by-user') {
+      errEl.textContent = err.message + ' (' + err.code + ')';
     }
+    btn.disabled = false;
   });
 }
 
 function signOut() {
   auth.signOut();
 }
-
-// Process any pending redirect result; suppress stale-state errors silently
-auth.getRedirectResult().catch(() => {});
 
 auth.onAuthStateChanged(async user => {
   const loading   = document.getElementById('auth-loading');
