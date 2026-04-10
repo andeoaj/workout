@@ -312,6 +312,9 @@ function signOut() {
   auth.signOut();
 }
 
+// Consume any pending redirect result to clear stale OAuth state from localStorage
+auth.getRedirectResult().catch(() => {});
+
 auth.onAuthStateChanged(async user => {
   const loading   = document.getElementById('auth-loading');
   const authGate  = document.getElementById('auth-gate');
