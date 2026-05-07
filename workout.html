@@ -148,9 +148,12 @@ header p { font-size: 13px; color: var(--text2); margin-top: 2px; }
 .exercise-notes { font-size: 11px; color: var(--text2); margin-top: 3px; font-style: italic; }
 .exercise-body  { padding: 12px 16px; }
 /* ── SET ROW ── */
-.set-row { display: grid; grid-template-columns: 32px 1fr 1fr auto; gap: 8px; align-items: center; margin-bottom: 8px; }
+.set-row { display: grid; grid-template-columns: 32px 1fr 1fr auto; gap: 8px; align-items: center; margin-bottom: 8px; border-left: 2px solid transparent; padding-left: 4px; border-radius: 4px; transition: border-color 0.2s, background 0.2s; }
+.set-row.prefilled { border-left-color: var(--border); }
+.set-row.changed   { border-left-color: var(--success); background: rgba(74,222,128,0.07); }
 .set-num  { font-size: 12px; color: var(--text2); font-weight: 600; text-align: center; }
 .st-label { font-size: 9px; font-weight: 700; color: var(--accent2); text-align: center; line-height: 1; }
+.prefill-label { font-size: 11px; color: var(--text2); margin-bottom: 8px; font-style: italic; }
 /* ── INPUTS ── */
 input[type="number"], input[type="text"], input[type="date"], textarea, select {
   background: var(--surface2); border: 1px solid var(--border);
@@ -312,9 +315,6 @@ function signOut() {
   auth.signOut();
 }
 
-// Consume any pending redirect result to clear stale OAuth state from localStorage
-auth.getRedirectResult().catch(() => {});
-
 auth.onAuthStateChanged(async user => {
   const loading   = document.getElementById('auth-loading');
   const authGate  = document.getElementById('auth-gate');
@@ -364,34 +364,9 @@ async function _saveUserData() {
   }
 }
 
-// Auto-migrate from old Firestore subcollection schema or localStorage
+// Auto-migrate localStorage data on first sign-in
 async function checkMigration() {
   if (_userData.sessions.length > 0 || _userData.bodyWeights.length > 0) return;
-
-  // Check old Firestore subcollection structure (users/{uid}/data/*)
-  try {
-    const dataRef = db.collection('users').doc(_uid).collection('data');
-    const [sessSnap, bwSnap, progSnap] = await Promise.all([
-      dataRef.doc('sessions').get(),
-      dataRef.doc('bodyweights').get(),
-      dataRef.doc('programs').get(),
-    ]);
-    const oldSessions = sessSnap.exists  ? (sessSnap.data().items  || []) : [];
-    const oldBW       = bwSnap.exists    ? (bwSnap.data().items    || []) : [];
-    const oldPrograms = progSnap.exists  ? progSnap.data()                : null;
-    if (oldSessions.length || oldBW.length || oldPrograms) {
-      if (oldSessions.length) _userData.sessions    = oldSessions;
-      if (oldBW.length)       _userData.bodyWeights = oldBW;
-      if (oldPrograms)        _userData.programs    = oldPrograms;
-      await _saveUserData();
-      showToast('Data restored ✓');
-      return;
-    }
-  } catch (e) {
-    console.warn('Old schema migration check failed:', e);
-  }
-
-  // Fall back to localStorage migration
   const lsSessions    = JSON.parse(localStorage.getItem('wt_sessions')    || '[]');
   const lsBW          = JSON.parse(localStorage.getItem('wt_bodyweights') || '[]');
   const lsPrograms    = JSON.parse(localStorage.getItem('wt_programs')    || 'null');
@@ -405,7 +380,7 @@ async function checkMigration() {
 
 // DB — synchronous reads (from cache), async writes
 const DB = {
-  getPrograms()            { return _userData.programs || structuredClone(DEFAULT_PROGRAMS); },
+  getPrograms()            { return _userData.programs || JSON.parse(JSON.stringify(DEFAULT_PROGRAMS)); },
   async savePrograms(p)    { _userData.programs = p;    await _saveUserData(); },
   getSessions()            { return _userData.sessions    || []; },
   async saveSessions(s)    { _userData.sessions = s;    await _saveUserData(); },
@@ -591,6 +566,7 @@ function renderLog() {
 
   if (logState.type) {
     const prog = programs[logState.type];
+    if (!prog) { logState.type = null; renderLog(); return; }
     const sessions = DB.getSessions();
     const lastSess = [...sessions].filter(s=>s.type===logState.type).sort((a,b)=>b.date.localeCompare(a.date))[0];
 
@@ -598,9 +574,13 @@ function renderLog() {
              <div class="section-sub">Add sets per exercise. Use + ST Set for stripping (drop) sets.</div>`;
 
     prog.exercises.forEach(ex => {
-      if (!logState.sets[ex.id]) logState.sets[ex.id] = [];
       const lastExData = lastSess?.exercises.find(e=>e.exerciseId===ex.id);
-      html += buildExBlock(ex, lastExData, lastSess?.date);
+      if (!logState.sets[ex.id]) {
+        logState.sets[ex.id] = lastExData?.sets?.length
+          ? lastExData.sets.map(s => ({ weight: s.weight??'', reps: s.reps??'', isStripping: s.isStripping, _prefilled: true }))
+          : [];
+      }
+      html += buildExBlock(ex, lastSess?.date);
     });
 
     html += `<button class="btn btn-success btn-full" onclick="saveSession()" style="margin-top:4px;margin-bottom:20px">
@@ -611,20 +591,17 @@ function renderLog() {
   document.getElementById('page-log').innerHTML = html;
 }
 
-function buildExBlock(ex, lastExData, lastDate) {
+function buildExBlock(ex, lastDate) {
   const sets = logState.sets[ex.id] || [];
 
-  let prevHtml = '';
-  if (lastExData?.sets?.length) {
-    const summary = lastExData.sets.map(s => {
-      const w = (s.weight!==null && s.weight!=='') ? s.weight+'kg' : 'BW';
-      return `${w}×${s.reps}${s.isStripping?'<span style="color:var(--accent2)"> ST</span>':''}`;
-    }).join(' · ');
-    prevHtml = `<div class="prev-perf"><strong>Last ${fmtDate(lastDate)}:</strong> ${summary}</div>`;
-  }
+  const prefillLabel = lastDate && sets.some(s => s._prefilled)
+    ? `<div class="prefill-label">↑ Pre-filled from ${fmtDate(lastDate)} — edit to update</div>`
+    : '';
 
-  const setsHtml = sets.map((s,i) => `
-    <div class="set-row">
+  const setsHtml = sets.map((s,i) => {
+    const rowClass = s._changed ? 'set-row changed' : (s._prefilled ? 'set-row prefilled' : 'set-row');
+    return `
+    <div class="${rowClass}" id="sr-${ex.id}-${i}">
       <div>
         <div class="set-num">${i+1}</div>
         ${s.isStripping ? '<div class="st-label">ST</div>' : ''}
@@ -636,7 +613,8 @@ function buildExBlock(ex, lastExData, lastDate) {
         value="${s.reps??''}" style="text-align:center"
         oninput="updSet('${ex.id}',${i},'reps',this.value)">
       <button class="delete-btn" onclick="removeSet('${ex.id}',${i})">×</button>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 
   return `
     <div class="exercise-block" id="exb-${ex.id}">
@@ -645,7 +623,7 @@ function buildExBlock(ex, lastExData, lastDate) {
         <div class="exercise-notes">${ex.notes}</div>
       </div>
       <div class="exercise-body">
-        ${prevHtml}
+        ${prefillLabel}
         ${setsHtml}
         <div class="add-set-area">
           <button class="btn btn-secondary btn-sm" style="flex:1" onclick="addSet('${ex.id}',false)">+ Set</button>
@@ -668,12 +646,16 @@ function removeSet(exId, idx) { logState.sets[exId].splice(idx,1); renderLog(); 
 
 function updSet(exId, idx, field, val) {
   if (!logState.sets[exId]) return;
-  logState.sets[exId][idx][field] = val==='' ? '' : parseFloat(val);
+  logState.sets[exId][idx][field] = val === '' ? '' : parseFloat(val);
+  logState.sets[exId][idx]._changed = true;
+  const row = document.getElementById('sr-' + exId + '-' + idx);
+  if (row) { row.classList.remove('prefilled'); row.classList.add('changed'); }
 }
 
 async function saveSession() {
   if (!logState.type) { showToast('Choose a workout type first', false); return; }
   const prog = DB.getPrograms()[logState.type];
+  if (!prog) { showToast('Program not found — try reloading', false); return; }
   const exLogs = prog.exercises
     .filter(ex => (logState.sets[ex.id]||[]).length > 0)
     .map(ex => ({
