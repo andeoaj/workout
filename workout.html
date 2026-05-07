@@ -100,6 +100,15 @@ header p { font-size: 13px; color: var(--text2); margin-top: 2px; }
   transition: color 0.2s, border-color 0.2s; white-space: nowrap; margin-top: 2px;
 }
 #signout-btn:hover { color: var(--text); border-color: var(--text2); }
+.unit-toggle {
+  display: flex; border: 1px solid var(--border); border-radius: 8px; overflow: hidden;
+  margin-top: 2px;
+}
+.unit-toggle button {
+  background: none; border: none; padding: 5px 9px; font-size: 11px; font-weight: 600;
+  cursor: pointer; color: var(--text2); transition: all 0.15s;
+}
+.unit-toggle button.active { background: var(--accent); color: #fff; }
 /* ── PAGES ── */
 .page { display: none; padding: 16px; }
 .page.active { display: block; }
@@ -243,7 +252,13 @@ input::placeholder { color: var(--text2); }
       <h1 id="page-title">Dashboard</h1>
       <p id="page-sub">Your workout overview</p>
     </div>
-    <button id="signout-btn" onclick="signOut()">Sign out</button>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
+      <div class="unit-toggle">
+        <button id="unit-kg"  onclick="setUnit('kg')"  class="active">kg</button>
+        <button id="unit-lbs" onclick="setUnit('lbs')">lbs</button>
+      </div>
+      <button id="signout-btn" onclick="signOut()">Sign out</button>
+    </div>
   </div>
 </header>
 
@@ -327,6 +342,8 @@ auth.onAuthStateChanged(async user => {
     loading.style.display  = 'none';
     authGate.style.display = 'none';
     app.style.display      = 'block';
+    document.getElementById('unit-kg').classList.toggle('active', unitPref === 'kg');
+    document.getElementById('unit-lbs').classList.toggle('active', unitPref === 'lbs');
     renderHome();
   } else {
     _uid = null;
@@ -432,6 +449,32 @@ const DEFAULT_PROGRAMS = {
 let logState  = { type: null, date: todayStr(), sets: {}, id: null };
 let progState = { type: 'A', exerciseId: null, metric: 'weight' };
 const charts  = {};
+
+// ════════════════════════════════════════════════════
+// UNIT PREFERENCE
+// ════════════════════════════════════════════════════
+let unitPref = localStorage.getItem('wt_unit') || 'kg';
+
+function toDisplay(kg) {
+  if (kg === '' || kg === null || kg === undefined) return '';
+  return unitPref === 'lbs' ? Math.round(kg * 2.20462 * 10) / 10 : kg;
+}
+function fromDisplay(val) {
+  if (val === '' || val === null || isNaN(val)) return '';
+  return unitPref === 'lbs' ? Math.round((val / 2.20462) * 100) / 100 : parseFloat(val);
+}
+function unitLabel() { return unitPref; }
+
+function setUnit(u) {
+  unitPref = u;
+  localStorage.setItem('wt_unit', u);
+  document.getElementById('unit-kg').classList.toggle('active', u === 'kg');
+  document.getElementById('unit-lbs').classList.toggle('active', u === 'lbs');
+  logState.sets = {};
+  renderLog();
+  renderProgress();
+  renderBody();
+}
 
 // ════════════════════════════════════════════════════
 // UTILS
@@ -606,8 +649,8 @@ function buildExBlock(ex, lastDate) {
         <div class="set-num">${i+1}</div>
         ${s.isStripping ? '<div class="st-label">ST</div>' : ''}
       </div>
-      <input type="number" step="0.5" min="0" placeholder="kg"
-        value="${s.weight??''}" style="text-align:center"
+      <input type="number" step="0.5" min="0" placeholder="${unitLabel()}"
+        value="${toDisplay(s.weight)}" style="text-align:center"
         oninput="updSet('${ex.id}',${i},'weight',this.value)">
       <input type="number" min="0" placeholder="reps"
         value="${s.reps??''}" style="text-align:center"
@@ -646,7 +689,7 @@ function removeSet(exId, idx) { logState.sets[exId].splice(idx,1); renderLog(); 
 
 function updSet(exId, idx, field, val) {
   if (!logState.sets[exId]) return;
-  logState.sets[exId][idx][field] = val === '' ? '' : parseFloat(val);
+  logState.sets[exId][idx][field] = field === 'weight' ? fromDisplay(parseFloat(val)) : (val === '' ? '' : parseFloat(val));
   logState.sets[exId][idx]._changed = true;
   const row = document.getElementById('sr-' + exId + '-' + idx);
   if (row) { row.classList.remove('prefilled'); row.classList.add('changed'); }
@@ -759,8 +802,8 @@ function drawProgressChart() {
       const valid = ed.sets.filter(st => st.weight!==null && st.reps!==null && st.weight!=='' && st.reps!=='');
       if (!valid.length) return null;
       const val = metric==='weight'
-        ? Math.max(...valid.map(st=>st.weight))
-        : valid.reduce((a,st)=>a+(st.weight*st.reps),0);
+        ? toDisplay(Math.max(...valid.map(st=>st.weight)))
+        : toDisplay(valid.reduce((a,st)=>a+(st.weight*st.reps),0));
       return { label: fmtDate(s.date), val };
     }).filter(Boolean);
 
@@ -785,7 +828,7 @@ function drawProgressChart() {
         tooltip: {
           backgroundColor:'#1a1a24', borderColor:'#6c63ff', borderWidth:1,
           titleColor:'#e8e8f0', bodyColor:'#8888a8',
-          callbacks: { label: ctx=>` ${ctx.parsed.y}${metric==='weight'?' kg':' kg·reps'}` }
+          callbacks: { label: ctx=>` ${ctx.parsed.y}${metric==='weight'?' '+unitLabel():' '+unitLabel()+'·reps'}` }
         }
       },
       scales: {
@@ -814,8 +857,8 @@ function renderBody() {
         <input type="date" id="bw-date" value="${todayStr()}">
       </div>
       <div class="form-group">
-        <label class="form-label">Weight (kg)</label>
-        <input type="number" id="bw-val" step="0.1" min="0" placeholder="e.g. 78.5">
+        <label class="form-label">Weight (${unitLabel()})</label>
+        <input type="number" id="bw-val" step="0.1" min="0" placeholder="${unitLabel() === 'lbs' ? 'e.g. 173' : 'e.g. 78.5'}">
       </div>
       <button class="btn btn-primary btn-full" onclick="saveBW()">Save</button>
     </div>
@@ -832,7 +875,7 @@ function renderBody() {
         <div class="history-item">
           <span style="font-size:14px">${fmtDate(b.date)}</span>
           <div style="display:flex;align-items:center;gap:10px">
-            <strong>${b.weight} kg</strong>
+            <strong>${toDisplay(b.weight)} ${unitLabel()}</strong>
             <button class="delete-btn" onclick="deleteBW('${b.id}')" style="font-size:16px">×</button>
           </div>
         </div>`).join('')}
@@ -843,7 +886,8 @@ function renderBody() {
 
 async function saveBW() {
   const date   = document.getElementById('bw-date').value;
-  const weight = parseFloat(document.getElementById('bw-val').value);
+  const rawVal = parseFloat(document.getElementById('bw-val').value);
+  const weight = fromDisplay(rawVal);
   if (!date || isNaN(weight) || weight <= 0) { showToast('Enter a valid weight', false); return; }
   const bws = DB.getBodyWeights();
   bws.push({ id: uid(), date, weight });
@@ -867,7 +911,7 @@ function drawBWChart(bws) {
     data: {
       labels: sorted.map(b=>fmtDate(b.date)),
       datasets: [{
-        data: sorted.map(b=>b.weight),
+        data: sorted.map(b=>toDisplay(b.weight)),
         borderColor:'#FF4500', backgroundColor:'rgba(255,69,0,0.1)',
         borderWidth:2.5, pointBackgroundColor:'#ff6584',
         pointRadius:5, pointHoverRadius:7, tension:0.3, fill:true
@@ -880,7 +924,7 @@ function drawBWChart(bws) {
         tooltip: {
           backgroundColor:'#1a1a24', borderColor:'#ff6584', borderWidth:1,
           titleColor:'#e8e8f0', bodyColor:'#8888a8',
-          callbacks: { label: ctx=>` ${ctx.parsed.y} kg` }
+          callbacks: { label: ctx=>` ${ctx.parsed.y} ${unitLabel()}` }
         }
       },
       scales: {
