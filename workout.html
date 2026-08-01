@@ -139,7 +139,7 @@ header p { font-size: 13px; color: var(--text2); margin-top: 2px; }
 .btn-full { width: 100%; }
 .btn:disabled { opacity: 0.4; cursor: not-allowed; }
 /* ── WORKOUT TYPE GRID ── */
-.workout-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin-bottom: 16px; }
+.workout-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 10px; margin-bottom: 16px; }
 .workout-btn {
   background: var(--surface2); border: 2px solid var(--border);
   border-radius: var(--radius); padding: 16px 8px; text-align: center;
@@ -198,9 +198,10 @@ input::placeholder { color: var(--text2); }
 .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 /* ── BADGES ── */
 .badge { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 10px; margin-left: 6px; }
-.badge-A { background: #3b82f6; color: white; }
-.badge-B { background: #10b981; color: white; }
-.badge-C { background: #f59e0b; color: white; }
+.badge-A1 { background: #3b82f6; color: white; }
+.badge-B2 { background: #10b981; color: white; }
+.badge-A2 { background: #f59e0b; color: white; }
+.badge-B1 { background: #8b5cf6; color: white; }
 /* ── TYPOGRAPHY ── */
 .section-title { font-size: 17px; font-weight: 700; margin-bottom: 2px; }
 .section-sub   { font-size: 13px; color: var(--text2); margin-bottom: 14px; }
@@ -409,36 +410,44 @@ const DB = {
 // DEFAULT PROGRAM
 // ════════════════════════════════════════════════════
 const DEFAULT_PROGRAMS = {
-  A: {
-    name: "Cosce & Bicipiti", nameEn: "Legs & Biceps",
+  A1: {
+    name: "Cosce & Pettorali", nameEn: "Legs & Chest (FM+FRes)",
     exercises: [
-      { id:'a1', name:'Deadlift',                        notes:'tibie entro la zigrinatura, piedi 11:05, peso sull\'avampiede' },
-      { id:'a2', name:'Contraffondi con manubri',         notes:'peso sempre sul piede avanti, per lato' },
-      { id:'a3', name:'Artis Leg Curl',                   notes:'#5#5 ROM #1, schiena inarcata — ultima ST' },
-      { id:'a4', name:'Curl manubri su panca 75°',        notes:'petto aperto' },
-      { id:'a5', name:'Curl sbarra dal cavo basso',       notes:'un passo indietro, busto verticale — ultima ST' },
+      { id:'a11', name:'Squat',              notes:'3×2 fermo giù TUT32X1 @60/65/70kg + 3×6 normali' },
+      { id:'a12', name:'RDL',               notes:'4×8' },
+      { id:'a13', name:'Panca piana',        notes:'3×3 fermo giù TUT32X1 @55/60/65kg + 3×6' },
+      { id:'a14', name:'Dips con ascensore', notes:'4×8' },
     ]
   },
-  B: {
-    name: "Dorsali & Deltoidi", nameEn: "Back & Shoulders",
+  B2: {
+    name: "Dorsali / Deltoidi / Bicipiti", nameEn: "Back / Shoulders / Biceps (LT+)",
     exercises: [
-      { id:'b1', name:'Trazioni alla sbarra',             notes:'con ascensore (peso negativo = assistenza)' },
-      { id:'b2', name:'Pulley con triangolo',             notes:'scapolotoracico' },
-      { id:'b3', name:'Artis Low Row',                    notes:'sedile #6, petto #9, impugnatura a metà — ultima ST' },
-      { id:'b4', name:'Spinte in alto manubri panca 75°', notes:'gomito 15-20° avanti, avambracci sempre verticali' },
-      { id:'b5', name:'Alzate laterali seduto',           notes:'su panca verticale, leggera extrarotazione' },
-      { id:'b6', name:'Artis Rear Delt Row',              notes:'sedile #6, petto #9, scapole fisse neutre' },
-      { id:'b7', name:'Crunch inversi su panca crunch',   notes:'-5°, 3×MAX reps' },
+      { id:'b21', name:'Chinups presa supina',        notes:'3×(5+5) CS20"' },
+      { id:'b22', name:'Shoulder press presa larga',  notes:'4×8/12' },
+      { id:'b23', name:'Curl bil corto medio zigrinatura', notes:'3×8/12' },
+      { id:'b24', name:'Pulley con trazybar',         notes:'3×10/15 — ultima ST' },
+      { id:'b25', name:'Alzate laterali cavo basso',  notes:'3×10/15 — ultima ST' },
+      { id:'b26', name:'Curl elastico a martello',    notes:'3×10/15' },
     ]
   },
-  C: {
-    name: "Pettorali & Tricipiti", nameEn: "Chest & Triceps",
+  A2: {
+    name: "Pettorali / Cosce / Tricipiti", nameEn: "Chest / Legs / Triceps (LT+)",
     exercises: [
-      { id:'c1', name:'Panca piana bilanciere',           notes:'medio sugli 81cm — discesa 4", fermo 2" al petto' },
-      { id:'c2', name:'Spinte manubri su panca 30°',      notes:'extrarotazione, palmi che si guardano in alto' },
-      { id:'c3', name:'Artis Pectoral machine',           notes:'#9 — ultima ST' },
-      { id:'c4', name:'French press con manubri',         notes:'su panca piana, spingi con i piedi, LE SPALLE appoggiate' },
-      { id:'c5', name:'Pushdown sbarra curva cavo alto',  notes:'bacino indietro, spalla ferma, stendi il gomito — ultima ST' },
+      { id:'a21', name:'Panca inclinata bil',     notes:'3×(5+5) CS20"' },
+      { id:'a22', name:'Leg press orizzontale',   notes:'4×8/12' },
+      { id:'a23', name:'French press bil.EZ',     notes:'4×8/12' },
+      { id:'a24', name:'Croci cavi alti',         notes:'3×10/15 — ultima ST' },
+      { id:'a25', name:'Leg extension',           notes:'3×10/15 — ultima ST' },
+      { id:'a26', name:'Pushdown elastico',       notes:'3×10/15' },
+    ]
+  },
+  B1: {
+    name: "Dorsali & Deltoidi", nameEn: "Back & Shoulders (FM+FRes)",
+    exercises: [
+      { id:'b11', name:'Pullups presa media',              notes:'3×3 fermo su TUT32X2 @-25kg + 3×6' },
+      { id:'b12', name:'Rematore bil',                     notes:'4×8' },
+      { id:'b13', name:'Spinte manubri panca 75°',         notes:'3×3 fermo su TUT32X2 @18kg + 3×6' },
+      { id:'b14', name:'Tirate al mento sbarra cavo basso', notes:'4×8' },
     ]
   }
 };
@@ -447,7 +456,7 @@ const DEFAULT_PROGRAMS = {
 // STATE
 // ════════════════════════════════════════════════════
 let logState  = { type: null, date: todayStr(), sets: {}, id: null };
-let progState = { type: 'A', exerciseId: null, metric: 'weight' };
+let progState = { type: 'A1', exerciseId: null, metric: 'weight' };
 const charts  = {};
 
 // ════════════════════════════════════════════════════
@@ -529,7 +538,7 @@ function renderHome() {
   const bws      = DB.getBodyWeights().sort((a,b) => b.date.localeCompare(a.date));
   const recent   = [...sessions].sort((a,b) => b.date.localeCompare(a.date)).slice(0,5);
   const lastBW   = bws[0];
-  const TN = { A:'Legs & Biceps', B:'Back & Shoulders', C:'Chest & Triceps' };
+  const TN = { A1:'Cosce & Pettorali', B2:'Dorsali/Delt/Bic', A2:'Pett/Cosce/Tric', B1:'Dorsali & Deltoidi' };
 
   document.getElementById('page-home').innerHTML = `
     <div class="stats-row">
@@ -541,7 +550,7 @@ function renderHome() {
     <div class="card">
       <div class="card-title">Quick Start</div>
       <div class="workout-grid">
-        ${['A','B','C'].map(t=>`
+        ${['A1','B2','A2','B1'].map(t=>`
           <div class="workout-btn" onclick="startWorkout('${t}')">
             <span class="letter">${t}</span>
             <span class="label">${TN[t]}</span>
@@ -560,7 +569,7 @@ function renderHome() {
               <div style="font-size:12px;color:var(--text2);margin-top:2px">${s.exercises.length} exercise${s.exercises.length!==1?'s':''}</div>
             </div>
             <div style="display:flex;align-items:center;gap:8px">
-              <span class="badge badge-${s.type}">${s.type} · ${TN[s.type]}</span>
+              <span class="badge badge-${s.type}">${s.type} · ${TN[s.type]||s.type}</span>
               <button class="delete-btn" onclick="editSession('${s.id}')" title="Edit session" style="color:var(--accent);font-size:16px">✎</button>
             </div>
           </div>`).join('')
@@ -589,13 +598,13 @@ function editSession(id) {
 // ════════════════════════════════════════════════════
 function renderLog() {
   const programs = DB.getPrograms();
-  const TN = { A:'Legs & Biceps', B:'Back & Shoulders', C:'Chest & Triceps' };
+  const TN = { A1:'Cosce & Pettorali', B2:'Dorsali/Delt/Bic', A2:'Pett/Cosce/Tric', B1:'Dorsali & Deltoidi' };
 
   let html = `
     <div class="card">
       <div class="card-title">Select Workout</div>
       <div class="workout-grid">
-        ${['A','B','C'].map(t=>`
+        ${['A1','B2','A2','B1'].map(t=>`
           <div class="workout-btn ${logState.type===t?'selected':''}" onclick="selectType('${t}')">
             <span class="letter">${t}</span>
             <span class="label">${TN[t]}</span>
@@ -735,10 +744,10 @@ async function saveSession() {
 // ════════════════════════════════════════════════════
 function renderProgress() {
   const programs = DB.getPrograms();
-  const TN = { A:'Legs & Biceps', B:'Back & Shoulders', C:'Chest & Triceps' };
+  const TN = { A1:'Cosce & Pettorali', B2:'Dorsali/Delt/Bic', A2:'Pett/Cosce/Tric', B1:'Dorsali & Deltoidi' };
   if (!progState.exerciseId) progState.exerciseId = programs[progState.type]?.exercises[0]?.id || null;
 
-  const exercises  = programs[progState.type].exercises;
+  const exercises  = programs[progState.type]?.exercises || [];
   const sessions   = DB.getSessions();
   const exSessions = sessions
     .filter(s => s.type===progState.type && s.exercises.some(e=>e.exerciseId===progState.exerciseId))
@@ -747,7 +756,7 @@ function renderProgress() {
 
   document.getElementById('page-progress').innerHTML = `
     <div class="tab-row">
-      ${['A','B','C'].map(t=>`<button class="tab-btn ${progState.type===t?'active':''}" onclick="setPType('${t}')">${t} · ${TN[t]}</button>`).join('')}
+      ${['A1','B2','A2','B1'].map(t=>`<button class="tab-btn ${progState.type===t?'active':''}" onclick="setPType('${t}')">${t} · ${TN[t]}</button>`).join('')}
     </div>
 
     <div class="form-group">
@@ -940,15 +949,27 @@ function drawBWChart(bws) {
 // ════════════════════════════════════════════════════
 function renderImport() {
   document.getElementById('page-import').innerHTML = `
-    <div class="section-sub">Paste your trainer's Evernote notes. The app will extract exercises per workout and update your program — your logged data is never deleted.</div>
+    <div class="section-sub">Two tools: import a session from your trainer's notes, or update the exercise list.</div>
 
     <div class="card">
-      <div class="card-title">Workout Notes (Italian)</div>
+      <div class="card-title">Log Sessions from Notes</div>
+      <p style="font-size:13px;color:var(--text2);margin-bottom:12px">Paste one or more session notes to add them to your history. Handles the — DD/M/YY · B1- format with @weights.</p>
+      <div class="form-group">
+        <textarea class="import-textarea" id="session-import-text"
+          placeholder="-- 29/7/26&#10;B1- Dorsali, deltoidi&#10;Pullups presa media&#10;-3x2 @(-20)-(-15)-//&#10;-3x4 normali @(-15)-bw-(-15)&#10;Rematore bil 4x8 @60-65-//-70&#10;..."></textarea>
+      </div>
+      <button class="btn btn-primary btn-full" onclick="runSessionParser()">Parse & Preview</button>
+    </div>
+
+    <div id="session-import-preview"></div>
+
+    <div class="card" style="margin-top:8px">
+      <div class="card-title">Update Exercise List</div>
       <div class="form-group">
         <textarea class="import-textarea" id="import-text"
-          placeholder="Paste your trainer's text here…&#10;&#10;The parser reads lines like:&#10;  A- Cosce, bicipiti&#10;  Deadlift (tibie…) 3x6/8 @90kg&#10;  Artis Leg Curl … ultima ST @45kg"></textarea>
+          placeholder="Paste your trainer's programme text here…&#10;&#10;The parser reads section headers like:&#10;  A1- Cosce, pettorali&#10;  B2- Dorsali, deltoidi&#10;followed by exercise names."></textarea>
       </div>
-      <button class="btn btn-primary btn-full" onclick="runParser()">Parse & Preview</button>
+      <button class="btn btn-secondary btn-full" onclick="runParser()">Parse & Preview</button>
     </div>
 
     <div id="import-preview"></div>
@@ -974,12 +995,12 @@ function runParser() {
     return;
   }
 
-  const TN = { A:'Legs & Biceps', B:'Back & Shoulders', C:'Chest & Triceps' };
+  const TN = { A1:'Cosce & Pettorali', B2:'Dorsali/Delt/Bic', A2:'Pett/Cosce/Tric', B1:'Dorsali & Deltoidi' };
   let html = `<div class="card">
     <div class="card-title">Preview — ${total} exercises found</div>
     <p style="font-size:13px;color:var(--text2);margin-bottom:14px">Confirm to replace the exercise list for the sections shown below.</p>`;
 
-  ['A','B','C'].forEach(t => {
+  ['A1','B2','A2','B1'].forEach(t => {
     const list = parsed[t]?.exercises||[];
     if (!list.length) return;
     html += `<div style="margin-bottom:14px">
@@ -999,20 +1020,20 @@ function runParser() {
 }
 
 function parseWorkoutText(text) {
-  const result = { A:{exercises:[]}, B:{exercises:[]}, C:{exercises:[]} };
+  const result = { A1:{exercises:[]}, B2:{exercises:[]}, A2:{exercises:[]}, B1:{exercises:[]} };
   const lines  = text.split('\n').map(l=>l.trim()).filter(Boolean);
-  const TYPE_RE = /^([ABC])[-–]\s*/;
+  const TYPE_RE = /^([AB][12])[-–\s]/;
   const SKIP_RE = /^(--|MACRO|MESO|MICRO|WARMUP|Mobilita|Warm)/i;
 
   let cur = null;
   for (const line of lines) {
     const tm = line.match(TYPE_RE);
-    if (tm) { cur = tm[1]; continue; }
+    if (tm && result[tm[1]] !== undefined) { cur = tm[1]; continue; }
     if (!cur || SKIP_RE.test(line) || line.startsWith('-')) continue;
     if (!/^[A-Z\u00C0-\u00FF]/.test(line)) continue;
 
     let name = line
-      .replace(/\d+x\d+\/?\d*[^@]*/i, '')
+      .replace(/\d+[×x]\d+\/?\d*[^@]*/i, '')
       .replace(/-\d+\/?\d*["\s]*/g, '')
       .replace(/ultima\s+ST.*/i, '')
       .replace(/@.*/g, '')
@@ -1036,7 +1057,7 @@ async function applyParsed() {
   const preview = document.getElementById('import-preview');
   if (!preview._parsed) return;
   const programs = DB.getPrograms();
-  ['A','B','C'].forEach(t => {
+  ['A1','B2','A2','B1'].forEach(t => {
     if (preview._parsed[t]?.exercises?.length > 0) programs[t].exercises = preview._parsed[t].exercises;
   });
   await DB.savePrograms(programs);
@@ -1046,8 +1067,232 @@ async function applyParsed() {
 
 async function resetProgram() {
   if (!confirm('Reset to default exercise list? Your logged sessions will not be deleted.')) return;
-  await DB.savePrograms(structuredClone(DEFAULT_PROGRAMS));
+  await DB.savePrograms(JSON.parse(JSON.stringify(DEFAULT_PROGRAMS)));
   showToast('Program reset to default.');
+}
+
+// ════════════════════════════════════════════════════
+// SESSION IMPORT FROM TRAINER NOTES
+// ════════════════════════════════════════════════════
+function runSessionParser() {
+  const text = document.getElementById('session-import-text').value;
+  if (!text.trim()) { showToast('Paste some notes first', false); return; }
+  const sessions = parseSessionsText(text);
+  const preview  = document.getElementById('session-import-preview');
+
+  if (!sessions.length) {
+    preview.innerHTML = `<div class="card" style="border-color:#ef4444;padding:16px;color:#ef4444">
+      No sessions found. Make sure the text has a date line (-- DD/M/YY) and a workout type header (A1-, B2-, A2-, or B1-).</div>`;
+    return;
+  }
+
+  const existing = DB.getSessions();
+  const TN = { A1:'Cosce & Pettorali', B2:'Dorsali/Delt/Bic', A2:'Pett/Cosce/Tric', B1:'Dorsali & Deltoidi' };
+  let html = '';
+  let newCount = 0;
+
+  sessions.forEach(sess => {
+    const dup = existing.some(s => s.date === sess.date && s.type === sess.type);
+    if (!dup) newCount++;
+    html += `<div class="card" style="border-color:${dup ? '#f59e0b' : 'var(--success)'}">
+      <div class="card-title" style="display:flex;justify-content:space-between;align-items:center">
+        <span>${sess.type} · ${TN[sess.type]||sess.type} — ${fmtDate(sess.date)}</span>
+        <span style="color:${dup ? '#f59e0b' : 'var(--success)'};font-size:10px;font-weight:700">
+          ${dup ? '⚠ Already logged' : '✓ New'}
+        </span>
+      </div>`;
+    sess.exercises.forEach(ex => {
+      const matched = matchExToProgram(ex.rawName, sess.type);
+      html += `<div style="margin-bottom:10px">
+        <div style="font-size:13px;font-weight:600;margin-bottom:3px">
+          ${matched
+            ? matched.name
+            : `<span style="color:var(--accent2)">${ex.rawName}
+               <span style="font-size:10px;font-weight:400">(no match — saved as-is)</span></span>`}
+        </div>
+        <div style="font-size:11px;color:var(--text2)">
+          ${ex.sets.map((s,i) =>
+            `<span>Set ${i+1}: ${s.weight===null?'BW':s.weight+'kg'} × ${s.reps}</span>`
+          ).join(' &nbsp;·&nbsp; ')}
+        </div>
+      </div>`;
+    });
+    html += `</div>`;
+  });
+
+  html += `<button class="btn btn-success btn-full" onclick="applySessionImport()" style="margin-bottom:20px">
+    ✓ Save ${newCount} new session${newCount!==1?'s':''} to History
+  </button>`;
+
+  preview.innerHTML  = html;
+  preview._sessions  = sessions;
+  preview.scrollIntoView({ behavior: 'smooth' });
+}
+
+function parseSessionsText(text) {
+  const sessions  = [];
+  const lines     = text.split('\n');
+  let currentDate = null;
+  let currentSess = null;
+  let currentEx   = null;
+
+  const DATE_RE    = /^--\s*(\d{1,2})\/(\d{1,2})\/(\d{2,4})/;
+  const TYPE_RE    = /^([AB][12])[-–]/;
+  const SET_BLOCK  = /^-\s*(\d+)\s*[×x]\s*(\d+)[^@]*@(.+)/;
+  const SET_INLINE = /(\d+)\s*[×x]\s*(\d+)[^@]*@(.+)/;
+
+  function stripParens(s) {
+    return s.replace(/\([^)]*[a-zA-Z][^)]*\)/g, '').trim();
+  }
+
+  function flushEx() {
+    if (currentEx && currentEx.sets.length > 0 && currentSess) {
+      currentSess.exercises.push({ rawName: currentEx.rawName, sets: currentEx.sets });
+    }
+    currentEx = null;
+  }
+
+  function flushSess() {
+    flushEx();
+    if (currentSess && currentSess.exercises.length > 0) sessions.push(currentSess);
+    currentSess = null;
+  }
+
+  for (const raw of lines) {
+    const line = raw.trim();
+    if (!line || /^MICRO\s/i.test(line)) continue;
+
+    // Date line
+    const dm = line.match(DATE_RE);
+    if (dm) {
+      const yr = +dm[3]; const y = yr < 100 ? 2000 + yr : yr;
+      currentDate = `${y}-${String(+dm[2]).padStart(2,'0')}-${String(+dm[1]).padStart(2,'0')}`;
+      continue;
+    }
+
+    // Workout type header — start new session
+    const tm = line.match(TYPE_RE);
+    if (tm) {
+      flushSess();
+      currentSess = { date: currentDate || todayStr(), type: tm[1], exercises: [], id: uid() };
+      currentDate = null;
+      continue;
+    }
+
+    if (!currentSess) continue;
+
+    // Block set line: starts with -, has NxM @weights
+    const sbm = line.match(SET_BLOCK);
+    if (sbm && currentEx) {
+      const wts = parseWeightSeq(stripParens(sbm[3]), +sbm[1]);
+      wts.forEach(w => currentEx.sets.push({ weight: w, reps: +sbm[2], isStripping: false }));
+      continue;
+    }
+
+    // Inline set+name line: has NxM @weights, no leading dash
+    const sim = !line.startsWith('-') && line.match(SET_INLINE);
+    if (sim) {
+      flushEx();
+      const nameEnd = line.search(/\d+\s*[×x]\s*\d+/);
+      const rawName = (nameEnd > 0 ? line.slice(0, nameEnd) : line)
+        .split(',')[0].trim().replace(/\s+/g, ' ');
+      if (rawName.length >= 3) {
+        const wts = parseWeightSeq(stripParens(sim[3]), +sim[1]);
+        currentSess.exercises.push({
+          rawName,
+          sets: wts.map(w => ({ weight: w, reps: +sim[2], isStripping: false }))
+        });
+      }
+      currentEx = null;
+      continue;
+    }
+
+    // Exercise name line: starts with letter, no @, not a header
+    if (/^[A-Za-zÀ-ÿ]/.test(line) && !line.includes('@') && line.length > 3
+        && !/^(MACRO|MESO|WARMUP|Mobilit)/i.test(line)) {
+      flushEx();
+      const rawName = line.split(',')[0].trim().replace(/\s+/g, ' ');
+      if (rawName.length >= 3) currentEx = { rawName, sets: [] };
+    }
+  }
+
+  flushSess();
+  return sessions;
+}
+
+function parseWeightSeq(str, numSets) {
+  // Split by '-' outside parentheses
+  const parts = [];
+  let depth = 0, cur = '';
+  for (const c of str) {
+    if      (c === '(')              { depth++; cur += c; }
+    else if (c === ')')              { depth--; cur += c; }
+    else if (c === '-' && depth===0) { if (cur.trim()) parts.push(cur.trim()); cur = ''; }
+    else                             { cur += c; }
+  }
+  if (cur.trim()) parts.push(cur.trim());
+
+  let lastW = null;
+  const weights = [];
+  for (const p of parts) {
+    if (/^\/\//.test(p)) {
+      weights.push(lastW);
+    } else if (/^bw/i.test(p)) {
+      weights.push(null); lastW = null;
+    } else {
+      const m = p.match(/\(?(-?\d+(?:[.,]\d+)?)\)?/);
+      if (m) { const w = parseFloat(m[1].replace(',','.')); weights.push(w); lastW = w; }
+      else     weights.push(lastW);
+    }
+  }
+  while (weights.length < numSets) weights.push(lastW);
+  return weights.slice(0, numSets);
+}
+
+function matchExToProgram(rawName, type) {
+  const prog = DB.getPrograms()[type];
+  if (!prog) return null;
+  const norm = s => s.toLowerCase().replace(/[^a-z0-9àèéìòùä°]/g,' ').replace(/\s+/g,' ').trim();
+  const nRaw = norm(rawName);
+  let best = null, bestScore = 0;
+  for (const ex of prog.exercises) {
+    const words = norm(ex.name).split(' ').filter(w => w.length > 2);
+    const score = words.length ? words.filter(w => nRaw.includes(w)).length / words.length : 0;
+    if (score > bestScore && score >= 0.4) { bestScore = score; best = ex; }
+  }
+  return best;
+}
+
+async function applySessionImport() {
+  const preview  = document.getElementById('session-import-preview');
+  if (!preview._sessions) return;
+  const existing = DB.getSessions();
+  let added = 0;
+
+  for (const sess of preview._sessions) {
+    if (existing.some(s => s.date === sess.date && s.type === sess.type)) continue;
+    const exercises = sess.exercises.map(ex => {
+      const m = matchExToProgram(ex.rawName, sess.type);
+      return {
+        exerciseId:   m ? m.id : ex.rawName.toLowerCase().replace(/\s+/g,'-').slice(0,12),
+        exerciseName: m ? m.name : ex.rawName,
+        sets: ex.sets
+      };
+    }).filter(ex => ex.sets.length > 0);
+
+    if (exercises.length > 0) {
+      existing.push({ id: sess.id || uid(), date: sess.date, type: sess.type, exercises });
+      added++;
+    }
+  }
+
+  await DB.saveSessions(existing);
+  showToast(`${added} session${added!==1?'s':''} added to history! 💪`);
+  setTimeout(() => {
+    document.getElementById('session-import-text').value = '';
+    preview.innerHTML = '';
+    preview._sessions = null;
+  }, 1500);
 }
 </script>
 </body>
