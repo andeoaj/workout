@@ -139,7 +139,7 @@ header p { font-size: 13px; color: var(--text2); margin-top: 2px; }
 .btn-full { width: 100%; }
 .btn:disabled { opacity: 0.4; cursor: not-allowed; }
 /* ── WORKOUT TYPE GRID ── */
-.workout-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 10px; margin-bottom: 16px; }
+.workout-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin-bottom: 16px; }
 .workout-btn {
   background: var(--surface2); border: 2px solid var(--border);
   border-radius: var(--radius); padding: 16px 8px; text-align: center;
@@ -198,6 +198,9 @@ input::placeholder { color: var(--text2); }
 .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 /* ── BADGES ── */
 .badge { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 10px; margin-left: 6px; }
+.badge-A  { background: #3b82f6; color: white; }
+.badge-B  { background: #10b981; color: white; }
+.badge-C  { background: #f59e0b; color: white; }
 .badge-A1 { background: #3b82f6; color: white; }
 .badge-B2 { background: #10b981; color: white; }
 .badge-A2 { background: #f59e0b; color: white; }
@@ -410,44 +413,40 @@ const DB = {
 // DEFAULT PROGRAM
 // ════════════════════════════════════════════════════
 const DEFAULT_PROGRAMS = {
-  A1: {
-    name: "Cosce & Pettorali", nameEn: "Legs & Chest (FM+FRes)",
+  A: {
+    name: "Squat", nameEn: "Squat & Legs",
     exercises: [
-      { id:'a11', name:'Squat',              notes:'3×2 fermo giù TUT32X1 @60/65/70kg + 3×6 normali' },
-      { id:'a12', name:'RDL',               notes:'4×8' },
-      { id:'a13', name:'Panca piana',        notes:'3×3 fermo giù TUT32X1 @55/60/65kg + 3×6' },
-      { id:'a14', name:'Dips con ascensore', notes:'4×8' },
+      { id:'a1', name:'Airplane in appoggio',       notes:'attivazione' },
+      { id:'a2', name:'Squat profondo high bar',    notes:'4×8 -2\u2019 @60' },
+      { id:'a3', name:'Leg press 45°',              notes:'3×8/12 -90"' },
+      { id:'a4', name:'Leg Extension',              notes:'3×10/15 -60/90"' },
+      { id:'a5', name:'Hip Thrust',                 notes:'3×10/15 -60/90"' },
     ]
   },
-  B2: {
-    name: "Dorsali / Deltoidi / Bicipiti", nameEn: "Back / Shoulders / Biceps (LT+)",
+  B: {
+    name: "Panca", nameEn: "Chest & Shoulders",
     exercises: [
-      { id:'b21', name:'Chinups presa supina',        notes:'3×(5+5) CS20"' },
-      { id:'b22', name:'Shoulder press presa larga',  notes:'4×8/12' },
-      { id:'b23', name:'Curl bil corto medio zigrinatura', notes:'3×8/12' },
-      { id:'b24', name:'Pulley con trazybar',         notes:'3×10/15 — ultima ST' },
-      { id:'b25', name:'Alzate laterali cavo basso',  notes:'3×10/15 — ultima ST' },
-      { id:'b26', name:'Curl elastico a martello',    notes:'3×10/15' },
+      { id:'b1', name:'Y raises',                              notes:'×15 @1kg' },
+      { id:'b2', name:'T raises',                              notes:'×15 @1kg' },
+      { id:'b3', name:'Estensioni lungo i fianchi',            notes:'×15 @1kg, mani supine e prone' },
+      { id:'b4', name:'Panca piana',                           notes:'4×6/8 @60-62.5-65' },
+      { id:'b5', name:'Spinte in alto p.75',                   notes:'3×6/8' },
+      { id:'b6', name:'Spinte panca p.30',                     notes:'4×10/15' },
+      { id:'b7', name:'Alzate laterali decubito laterale p.30',notes:'4×10/15 @6' },
+      { id:'b8', name:'Pushdown con sbarra',                   notes:'4×10/15' },
     ]
   },
-  A2: {
-    name: "Pettorali / Cosce / Tricipiti", nameEn: "Chest / Legs / Triceps (LT+)",
+  C: {
+    name: "Trazioni", nameEn: "Back & Biceps",
     exercises: [
-      { id:'a21', name:'Panca inclinata bil',     notes:'3×(5+5) CS20"' },
-      { id:'a22', name:'Leg press orizzontale',   notes:'4×8/12' },
-      { id:'a23', name:'French press bil.EZ',     notes:'4×8/12' },
-      { id:'a24', name:'Croci cavi alti',         notes:'3×10/15 — ultima ST' },
-      { id:'a25', name:'Leg extension',           notes:'3×10/15 — ultima ST' },
-      { id:'a26', name:'Pushdown elastico',       notes:'3×10/15' },
-    ]
-  },
-  B1: {
-    name: "Dorsali & Deltoidi", nameEn: "Back & Shoulders (FM+FRes)",
-    exercises: [
-      { id:'b11', name:'Pullups presa media',              notes:'3×3 fermo su TUT32X2 @-25kg + 3×6' },
-      { id:'b12', name:'Rematore bil',                     notes:'4×8' },
-      { id:'b13', name:'Spinte manubri panca 75°',         notes:'3×3 fermo su TUT32X2 @18kg + 3×6' },
-      { id:'b14', name:'Tirate al mento sbarra cavo basso', notes:'4×8' },
+      { id:'c1', name:'Y raises',                              notes:'×15 @1kg' },
+      { id:'c2', name:'T raises',                              notes:'×15 @1kg' },
+      { id:'c3', name:'Estensioni lungo i fianchi',            notes:'×15 @1kg, mani supine e prone' },
+      { id:'c4', name:'Chinups con ascensore',                 notes:'4×8 @(-21)/(-28)' },
+      { id:'c5', name:'Rematore bilanciere',                   notes:'3×8/12' },
+      { id:'c6', name:'Lat machine presa media',               notes:'3×10/15 @50' },
+      { id:'c7', name:'Croci inverse su panca 30°',            notes:'4×10/15, altezza spalle' },
+      { id:'c8', name:'Curl manubri con rotazione seduto',     notes:'4×10/15' },
     ]
   }
 };
@@ -456,7 +455,7 @@ const DEFAULT_PROGRAMS = {
 // STATE
 // ════════════════════════════════════════════════════
 let logState  = { type: null, date: todayStr(), sets: {}, id: null };
-let progState = { type: 'A1', exerciseId: null, metric: 'weight' };
+let progState = { type: 'A',  exerciseId: null, metric: 'weight' };
 const charts  = {};
 
 // ════════════════════════════════════════════════════
@@ -538,7 +537,7 @@ function renderHome() {
   const bws      = DB.getBodyWeights().sort((a,b) => b.date.localeCompare(a.date));
   const recent   = [...sessions].sort((a,b) => b.date.localeCompare(a.date)).slice(0,5);
   const lastBW   = bws[0];
-  const TN = { A1:'Cosce & Pettorali', B2:'Dorsali/Delt/Bic', A2:'Pett/Cosce/Tric', B1:'Dorsali & Deltoidi' };
+  const TN = { A:'Squat', B:'Panca', C:'Trazioni' };
 
   document.getElementById('page-home').innerHTML = `
     <div class="stats-row">
@@ -550,7 +549,7 @@ function renderHome() {
     <div class="card">
       <div class="card-title">Quick Start</div>
       <div class="workout-grid">
-        ${['A1','B2','A2','B1'].map(t=>`
+        ${['A','B','C'].map(t=>`
           <div class="workout-btn" onclick="startWorkout('${t}')">
             <span class="letter">${t}</span>
             <span class="label">${TN[t]}</span>
@@ -598,13 +597,13 @@ function editSession(id) {
 // ════════════════════════════════════════════════════
 function renderLog() {
   const programs = DB.getPrograms();
-  const TN = { A1:'Cosce & Pettorali', B2:'Dorsali/Delt/Bic', A2:'Pett/Cosce/Tric', B1:'Dorsali & Deltoidi' };
+  const TN = { A:'Squat', B:'Panca', C:'Trazioni' };
 
   let html = `
     <div class="card">
       <div class="card-title">Select Workout</div>
       <div class="workout-grid">
-        ${['A1','B2','A2','B1'].map(t=>`
+        ${['A','B','C'].map(t=>`
           <div class="workout-btn ${logState.type===t?'selected':''}" onclick="selectType('${t}')">
             <span class="letter">${t}</span>
             <span class="label">${TN[t]}</span>
@@ -744,7 +743,7 @@ async function saveSession() {
 // ════════════════════════════════════════════════════
 function renderProgress() {
   const programs = DB.getPrograms();
-  const TN = { A1:'Cosce & Pettorali', B2:'Dorsali/Delt/Bic', A2:'Pett/Cosce/Tric', B1:'Dorsali & Deltoidi' };
+  const TN = { A:'Squat', B:'Panca', C:'Trazioni' };
   if (!progState.exerciseId) progState.exerciseId = programs[progState.type]?.exercises[0]?.id || null;
 
   const exercises  = programs[progState.type]?.exercises || [];
@@ -756,7 +755,7 @@ function renderProgress() {
 
   document.getElementById('page-progress').innerHTML = `
     <div class="tab-row">
-      ${['A1','B2','A2','B1'].map(t=>`<button class="tab-btn ${progState.type===t?'active':''}" onclick="setPType('${t}')">${t} · ${TN[t]}</button>`).join('')}
+      ${['A','B','C'].map(t=>`<button class="tab-btn ${progState.type===t?'active':''}" onclick="setPType('${t}')">${t} · ${TN[t]}</button>`).join('')}
     </div>
 
     <div class="form-group">
@@ -995,12 +994,12 @@ function runParser() {
     return;
   }
 
-  const TN = { A1:'Cosce & Pettorali', B2:'Dorsali/Delt/Bic', A2:'Pett/Cosce/Tric', B1:'Dorsali & Deltoidi' };
+  const TN = { A:'Squat', B:'Panca', C:'Trazioni' };
   let html = `<div class="card">
     <div class="card-title">Preview — ${total} exercises found</div>
     <p style="font-size:13px;color:var(--text2);margin-bottom:14px">Confirm to replace the exercise list for the sections shown below.</p>`;
 
-  ['A1','B2','A2','B1'].forEach(t => {
+  ['A','B','C'].forEach(t => {
     const list = parsed[t]?.exercises||[];
     if (!list.length) return;
     html += `<div style="margin-bottom:14px">
@@ -1020,15 +1019,15 @@ function runParser() {
 }
 
 function parseWorkoutText(text) {
-  const result = { A1:{exercises:[]}, B2:{exercises:[]}, A2:{exercises:[]}, B1:{exercises:[]} };
+  const result = { A:{exercises:[]}, B:{exercises:[]}, C:{exercises:[]} };
   const lines  = text.split('\n').map(l=>l.trim()).filter(Boolean);
-  const TYPE_RE = /^([AB][12])[-–\s]/;
+  const TYPE_RE = /^([ABC])[-–]/;
   const SKIP_RE = /^(--|MACRO|MESO|MICRO|WARMUP|Mobilita|Warm)/i;
 
   let cur = null;
   for (const line of lines) {
     const tm = line.match(TYPE_RE);
-    if (tm && result[tm[1]] !== undefined) { cur = tm[1]; continue; }
+    if (tm) { cur = tm[1]; continue; }
     if (!cur || SKIP_RE.test(line) || line.startsWith('-')) continue;
     if (!/^[A-Z\u00C0-\u00FF]/.test(line)) continue;
 
@@ -1057,7 +1056,7 @@ async function applyParsed() {
   const preview = document.getElementById('import-preview');
   if (!preview._parsed) return;
   const programs = DB.getPrograms();
-  ['A1','B2','A2','B1'].forEach(t => {
+  ['A','B','C'].forEach(t => {
     if (preview._parsed[t]?.exercises?.length > 0) programs[t].exercises = preview._parsed[t].exercises;
   });
   await DB.savePrograms(programs);
@@ -1087,7 +1086,7 @@ function runSessionParser() {
   }
 
   const existing = DB.getSessions();
-  const TN = { A1:'Cosce & Pettorali', B2:'Dorsali/Delt/Bic', A2:'Pett/Cosce/Tric', B1:'Dorsali & Deltoidi' };
+  const TN = { A:'Squat', B:'Panca', C:'Trazioni' };
   let html = '';
   let newCount = 0;
 
@@ -1137,7 +1136,7 @@ function parseSessionsText(text) {
   let currentEx   = null;
 
   const DATE_RE    = /^--\s*(\d{1,2})\/(\d{1,2})\/(\d{2,4})/;
-  const TYPE_RE    = /^([AB][12])[-–]/;
+  const TYPE_RE    = /^([ABC][12]?)[-–]/;
   const SET_BLOCK  = /^-\s*(\d+)\s*[×x]\s*(\d+)[^@]*@(.+)/;
   const SET_INLINE = /(\d+)\s*[×x]\s*(\d+)[^@]*@(.+)/;
 
