@@ -374,6 +374,12 @@ async function loadUserData() {
   } else {
     _userData = { sessions: [], bodyWeights: [], programs: null };
   }
+  // A saved program from an older programme structure has the wrong workout
+  // types, which would leave every workout button rendering an empty list.
+  const saved = _userData.programs;
+  if (saved && !Object.keys(DEFAULT_PROGRAMS).every(t => saved[t]?.exercises?.length)) {
+    _userData.programs = null;
+  }
 }
 
 async function _saveUserData() {
